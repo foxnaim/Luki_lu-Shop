@@ -22,7 +22,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     if (tab === "login") {
       const res = await signIn("credentials", { redirect: false, email, password });
-      if (res?.error) setError("Ошибка входа");
+      if (res?.error) {
+        setError("Ошибка входа: " + res.error);
+      } else {
+        onClose();
+      }
     } else {
       try {
         const res = await fetch("/api/auth/register", {
@@ -30,13 +34,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
-        if (!res.ok) throw new Error("Ошибка регистрации");
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Ошибка регистрации");
+
         await signIn("credentials", { redirect: false, email, password });
-      } catch (err) {
-        setError("Ошибка регистрации");
+        onClose();
+      } catch (err: any) {
+        setError(err.message);
       }
     }
-    onClose();
   };
 
   if (!isOpen) return null;
