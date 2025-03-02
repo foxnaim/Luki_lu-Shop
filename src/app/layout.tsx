@@ -1,22 +1,29 @@
 "use client";
+
+import { useEffect, useState } from "react";
+import { SessionProvider } from "next-auth/react";
 import { Provider } from "react-redux";
 import { store } from "@/app/components/store";
-import { SessionProvider } from "next-auth/react";
-
 import "./globals.css";
-
-
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <html><body></body></html>; // 🔥 Добавляем html и body, даже если контент еще не загрузился
+
   return (
-    <Provider store={store}>
-    <html lang="ru-kz-">
-      <body><SessionProvider>{children}</SessionProvider></body>
+    <html lang="ru">
+      <body>
+        <Provider store={store}>
+          <SessionProvider>{children}</SessionProvider>
+        </Provider>
+      </body>
     </html>
-  </Provider>
   );
 }

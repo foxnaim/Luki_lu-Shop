@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 
-export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const { data: session } = useSession();
   const [tab, setTab] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +24,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
       const res = await signIn("credentials", { redirect: false, email, password });
       if (res?.error) setError("Ошибка входа");
     } else {
-      // Регистрация будет через API
       try {
         const res = await fetch("/api/auth/register", {
           method: "POST",
@@ -48,23 +53,52 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
           ✕
         </button>
 
-        <div className="flex justify-center gap-4 mb-4">
-          <button className={`py-2 px-4 ${tab === "login" ? "border-b-2 border-neonBlue" : ""}`} onClick={() => setTab("login")}>
-            Вход
-          </button>
-          <button className={`py-2 px-4 ${tab === "register" ? "border-b-2 border-neonBlue" : ""}`} onClick={() => setTab("register")}>
-            Регистрация
-          </button>
-        </div>
+        {session ? (
+          <div>
+            <p className="text-lightGray mb-4">Привет, {session.user?.email}</p>
+            <button className="w-full bg-red-500 p-2 rounded text-white font-semibold" onClick={() => signOut()}>
+              Выйти
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-center gap-4 mb-4">
+              <button
+                className={`py-2 px-4 ${tab === "login" ? "border-b-2 border-neonBlue" : ""}`}
+                onClick={() => setTab("login")}
+              >
+                Вход
+              </button>
+              <button
+                className={`py-2 px-4 ${tab === "register" ? "border-b-2 border-neonBlue" : ""}`}
+                onClick={() => setTab("register")}
+              >
+                Регистрация
+              </button>
+            </div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-          <input type="email" placeholder="Email" className="w-full p-2 mb-3 bg-gray-800 rounded" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input type="password" placeholder="Пароль" className="w-full p-2 mb-3 bg-gray-800 rounded" value={password} onChange={(e) => setPassword(e.target.value)} />
-          {error && <p className="text-red-500">{error}</p>}
-          <button className="w-full bg-neonBlue p-2 rounded text-darkBg font-semibold" onClick={handleSubmit}>
-            {tab === "login" ? "Войти" : "Зарегистрироваться"}
-          </button>
-        </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full p-2 mb-3 bg-gray-800 rounded"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Пароль"
+                className="w-full p-2 mb-3 bg-gray-800 rounded"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {error && <p className="text-red-500">{error}</p>}
+              <button className="w-full bg-neonBlue p-2 rounded text-darkBg font-semibold" onClick={handleSubmit}>
+                {tab === "login" ? "Войти" : "Зарегистрироваться"}
+              </button>
+            </motion.div>
+          </>
+        )}
       </motion.div>
     </div>
   );
