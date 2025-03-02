@@ -16,9 +16,25 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  const validateForm = () => {
+    if (!email || !password) {
+      setError("Заполните все поля");
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Введите корректный email");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("Пароль должен быть не менее 6 символов");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     setError("");
-    if (!email || !password) return setError("Заполните все поля");
+    if (!validateForm()) return;
 
     if (tab === "login") {
       const res = await signIn("credentials", { redirect: false, email, password });
@@ -56,9 +72,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         transition={{ duration: 0.3 }}
         className="bg-darkBg p-6 rounded-lg w-96 text-center shadow-xl relative"
       >
-        <button className="absolute top-4 right-6 text-lightGray text-xl" onClick={onClose}>
-          ✕
-        </button>
+        <button className="absolute top-4 right-6 text-lightGray text-xl" onClick={onClose}>✕</button>
 
         {session ? (
           <div>
@@ -70,16 +84,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ) : (
           <>
             <div className="flex justify-center gap-4 mb-4">
-              <button
-                className={`py-2 px-4 ${tab === "login" ? "border-b-2 border-neonBlue" : ""}`}
-                onClick={() => setTab("login")}
-              >
+              <button className={`py-2 px-4 ${tab === "login" ? "border-b-2 border-neonBlue" : ""}`} onClick={() => setTab("login")}>
                 Вход
               </button>
-              <button
-                className={`py-2 px-4 ${tab === "register" ? "border-b-2 border-neonBlue" : ""}`}
-                onClick={() => setTab("register")}
-              >
+              <button className={`py-2 px-4 ${tab === "register" ? "border-b-2 border-neonBlue" : ""}`} onClick={() => setTab("register")}>
                 Регистрация
               </button>
             </div>
