@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials"; // ✅ Импортируем CredentialsProvider
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/app/components/lib/mongodb";
 import { User } from "@/app/components/models/User";
@@ -34,10 +34,15 @@ export const authOptions = {
     }),
   ],
   pages: {
-    signIn: "/auth",
+    signIn: "/",
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
+  callbacks: {
+    async redirect() {
+      return "/auth"; // Перенаправление после входа
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);
